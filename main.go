@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	src := flag.String("src", "", "Source destinations you'd like to backup. Multiple sources can be seperated with comma ")
+	src := flag.String("src", "", "Source destinations you'd like to backup. Multiple sources can be seperated by comma ")
 	dst := flag.String("dst", "", "Destination folder")
 	flag.Parse()
 
@@ -19,37 +19,37 @@ func main() {
 	}
 
 	// checking src folders
+	fmt.Println("Checking src/dst permissions:")
 	err := multistat(*src)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 	// checking dst folders
+	fmt.Println("Destination folder:", *dst)
 	err = isFolder(*dst)
 	if err != nil {
-		log.Println("cannot move on, check the destination folder")
-		log.Fatalf("%v", err)
+		log.Fatal(err)
 	}
-	fmt.Println("destination folder:", *dst)
+
+	// program goes here:
 }
 
 func multistat(paths ...string) error {
-	fmt.Println("Checking src permissions:")
 	for _, arr := range paths {
 		x := strings.Split(arr, ",")
 		for _, path := range x {
-			fmt.Print(path)
 			file, err := os.Stat(path)
 			if err != nil {
-				return fmt.Errorf(" FAILED! Unable to stat file: %v", err)
+				return fmt.Errorf("unable to stat file: %v", err)
 			}
 			if !file.IsDir() {
-				fmt.Println(" FAILED! (not a folder)")
+				return fmt.Errorf("%s is not a folder", path)
 			} else {
-				fmt.Println(" OK!")
+				fmt.Println(path, "OK!")
 			}
 		}
 	}
+	fmt.Println() //pretty print
 	return nil
 }
 
@@ -59,7 +59,7 @@ func isFolder(path string) error {
 		return fmt.Errorf("unable to stat: %v", err)
 	}
 	if !fileinfo.IsDir() {
-		return fmt.Errorf("not a folder")
+		return fmt.Errorf("%s is not a folder", path)
 	}
 	return nil
 }
