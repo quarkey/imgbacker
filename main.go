@@ -9,12 +9,13 @@ import (
 	"operation/qlibs/file"
 	"os"
 	"strings"
+
+	"github.com/quarkey/imgbacker/stack" //https://gist.github.com/bemasher/1777766
 )
 
 func main() {
 	src := flag.String("src", "", "Source destinations you'd like to backup. Multiple sources can be seperated by comma ")
 	dst := flag.String("dst", "", "Destination folder")
-	verbose := flag.Bool("verbose", false, "verbose mode")
 	flag.Parse()
 
 	// argument check
@@ -35,25 +36,21 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println() // pretty print
 
-	// getting the full path of every file in our source paths
-	var fileset [][]string
+	// making a stack of all src files
+	s := new(stack.Stack)
 	for _, dir := range strings.Split(*src, ",") {
 		fs, err := file.NewFileSet(dir)
 		if err != nil {
 			log.Fatal(err)
 		}
-		// listing files
-		if *verbose {
-			fmt.Println("Listing src files:")
-			for _, val := range fs {
-				getmd5(val)
-			}
+		for _, file := range fs {
+			s.Push(file)
 		}
-		fileset = append(fileset, fs)
 	}
+	fmt.Println("Items in stack: ", s.Len())
 }
+
 func getmd5(p string) {
 	f, err := os.Open(p)
 	if err != nil {
